@@ -7,66 +7,98 @@ $settings = getSettings();
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // Clean any output buffers
+    if (ob_get_level()) ob_clean();
+    
     header('Content-Type: application/json');
     
-    $action = $_POST['action'];
-    
-    if ($action === 'add_expense') {
-        $category = sanitize($_POST['category']);
-        $amount = floatval($_POST['amount']);
-        $description = sanitize($_POST['description']);
-        $expenseDate = sanitize($_POST['expense_date']);
-        $receipt = isset($_POST['receipt_number']) ? sanitize($_POST['receipt_number']) : '';
+    try {
+        $action = $_POST['action'];
         
-        if (empty($category) || $amount <= 0 || empty($description) || empty($expenseDate)) {
-            respond(false, 'All fields are required');
+        if ($action === 'add_expense') {
+            $category = sanitize($_POST['category']);
+            $amount = floatval($_POST['amount']);
+            $description = isset($_POST['description']) ? sanitize($_POST['description']) : '';
+            $expenseDate = sanitize($_POST['expense_date']);
+            $receipt = isset($_POST['receipt_number']) ? sanitize($_POST['receipt_number']) : '';
+            
+            if (empty($category) || $amount <= 0 || empty($expenseDate)) {
+                echo json_encode(['success' => false, 'message' => 'Category, amount, and date are required']);
+                exit;
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO expenses (user_id, category, amount, description, expense_date) VALUES (?, ?, ?, ?, ?)");
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
+                exit;
+            }
+            
+            $stmt->bind_param("isdss", $_SESSION['user_id'], $category, $amount, $description, $expenseDate);
+            
+            if ($stmt->execute()) {
+                logActivity('EXPENSE_ADDED', "Added expense: $category - " . formatCurrency($amount));
+                echo json_encode(['success' => true, 'message' => 'Expense added successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to add expense: ' . $stmt->error]);
+            }
+            $stmt->close();
+            exit;
         }
         
-        $stmt = $conn->prepare("INSERT INTO expenses (user_id, category, amount, description, expense_date, receipt_number) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("isdsss", $_SESSION['user_id'], $category, $amount, $description, $expenseDate, $receipt);
-        
-        if ($stmt->execute()) {
-            logActivity('EXPENSE_ADDED', "Added expense: $category - " . formatCurrency($amount));
-            respond(true, 'Expense added successfully');
-        } else {
-            respond(false, 'Failed to add expense');
+        if ($action === 'update_expense') {
+            $id = (int)$_POST['id'];
+            $category = sanitize($_POST['category']);
+            $amount = floatval($_POST['amount']);
+            $description = isset($_POST['description']) ? sanitize($_POST['description']) : '';
+            $expenseDate = sanitize($_POST['expense_date']);
+            $receipt = isset($_POST['receipt_number']) ? sanitize($_POST['receipt_number']) : '';
+            
+            $stmt = $conn->prepare("UPDATE expenses SET category=?, amount=?, description=?, expense_date=? WHERE id=?");
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
+                exit;
+            }
+            
+            $stmt->bind_param("sdssi", $category, $amount, $description, $expenseDate, $id);
+            
+            if ($stmt->execute()) {
+                logActivity('EXPENSE_UPDATED', "Updated expense ID: $id");
+                echo json_encode(['success' => true, 'message' => 'Expense updated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update expense: ' . $stmt->error]);
+            }
+            $stmt->close();
+            exit;
         }
+        
+        if ($action === 'delete_expense') {
+            $id = (int)$_POST['id'];
+            
+            $stmt = $conn->prepare("DELETE FROM expenses WHERE id=?");
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
+                exit;
+            }
+            
+            $stmt->bind_param("i", $id);
+            
+            if ($stmt->execute()) {
+                logActivity('EXPENSE_DELETED', "Deleted expense ID: $id");
+                echo json_encode(['success' => true, 'message' => 'Expense deleted successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete expense: ' . $stmt->error]);
+            }
+            $stmt->close();
+            exit;
+        }
+        
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        exit;
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
+        exit;
     }
-    
-    if ($action === 'update_expense') {
-        $id = (int)$_POST['id'];
-        $category = sanitize($_POST['category']);
-        $amount = floatval($_POST['amount']);
-        $description = sanitize($_POST['description']);
-        $expenseDate = sanitize($_POST['expense_date']);
-        $receipt = isset($_POST['receipt_number']) ? sanitize($_POST['receipt_number']) : '';
-        
-        $stmt = $conn->prepare("UPDATE expenses SET category=?, amount=?, description=?, expense_date=?, receipt_number=? WHERE id=?");
-        $stmt->bind_param("sdsssi", $category, $amount, $description, $expenseDate, $receipt, $id);
-        
-        if ($stmt->execute()) {
-            logActivity('EXPENSE_UPDATED', "Updated expense ID: $id");
-            respond(true, 'Expense updated successfully');
-        } else {
-            respond(false, 'Failed to update expense');
-        }
-    }
-    
-    if ($action === 'delete_expense') {
-        $id = (int)$_POST['id'];
-        
-        $stmt = $conn->prepare("DELETE FROM expenses WHERE id=?");
-        $stmt->bind_param("i", $id);
-        
-        if ($stmt->execute()) {
-            logActivity('EXPENSE_DELETED', "Deleted expense ID: $id");
-            respond(true, 'Expense deleted successfully');
-        } else {
-            respond(false, 'Failed to delete expense');
-        }
-    }
-    
-    exit;
 }
 
 // Get filter parameters
@@ -125,6 +157,42 @@ include 'header.php';
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* Fixed Modal Styles */
+.modal-backdrop {
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.modal-content {
+    margin: auto;
+    max-width: 32rem;
+    width: 100%;
+}
+
+.modal-form-container {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.modal-actions-sticky {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    border-top: 2px solid #e5e7eb;
+}
+
+@media (max-width: 640px) {
+    .modal-backdrop {
+        padding: 0.5rem;
+    }
+    
+    .modal-form-container {
+        max-height: calc(100vh - 180px);
+    }
 }
 </style>
 
@@ -245,6 +313,7 @@ include 'header.php';
             ?>
             <div>
                 <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-semibold text-gray-700"><?php echo htmlspecialchars($cat['category']); ?></span>
                     <span class="text-sm font-bold text-gray-900"><?php echo formatCurrency($cat['total']); ?></span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
@@ -346,91 +415,97 @@ include 'header.php';
     </div>
 </div>
 
-<!-- Expense Modal -->
-<div id="expenseModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="backdrop-filter: blur(4px);">
-    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl">
-        <div class="p-6 rounded-t-2xl text-white" style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="text-2xl font-bold" id="modalTitle">Add Expense</h3>
-                    <p class="text-white/80 text-sm">Record a business expense</p>
+<!-- Expense Modal - FIXED FOR SCROLLING -->
+<div id="expenseModal" class="modal-backdrop fixed inset-0 bg-black/50 z-50 hidden" style="backdrop-filter: blur(4px);">
+    <div class="modal-content my-8">
+        <div class="bg-white rounded-2xl shadow-2xl">
+            <div class="p-6 rounded-t-2xl text-white" style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold" id="modalTitle">Add Expense</h3>
+                        <p class="text-white/80 text-sm">Record a business expense</p>
+                    </div>
+                    <button onclick="closeExpenseModal()" class="text-white/80 hover:text-white transition">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
                 </div>
-                <button onclick="closeExpenseModal()" class="text-white/80 hover:text-white transition">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
             </div>
+
+            <form id="expenseForm" class="p-6">
+                <input type="hidden" id="expenseId" name="id">
+                <input type="hidden" id="expenseAction" name="action" value="add_expense">
+
+                <div class="modal-form-container">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                            <select name="category" id="expenseCategory" required 
+                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
+                                    style="focus:border-color: <?php echo $settings['primary_color']; ?>">
+                                <option value="">Select Category</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Salaries">Salaries</option>
+                                <option value="Supplies">Supplies</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Insurance">Insurance</option>
+                                <option value="Licenses">Licenses & Permits</option>
+                                <option value="Equipment">Equipment</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Amount (<?php echo $settings['currency']; ?>) *</label>
+                            <input type="number" step="0.01" name="amount" id="expenseAmount" required min="0.01"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition text-lg font-semibold"
+                                   style="focus:border-color: <?php echo $settings['primary_color']; ?>"
+                                   placeholder="0.00">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                            <input type="date" name="expense_date" id="expenseDate" value="<?php echo date('Y-m-d'); ?>" required 
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
+                                   style="focus:border-color: <?php echo $settings['primary_color']; ?>"
+                                   max="<?php echo date('Y-m-d'); ?>">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Receipt Number</label>
+                            <input type="text" name="receipt_number" id="expenseReceipt"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
+                                   style="focus:border-color: <?php echo $settings['primary_color']; ?>"
+                                   placeholder="Optional">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
+                            <textarea name="description" id="expenseDescription" rows="3" required 
+                                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
+                                      style="focus:border-color: <?php echo $settings['primary_color']; ?>"
+                                      placeholder="What was this expense for?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions-sticky">
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeExpenseModal()" 
+                                class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-bold text-gray-700 hover:bg-gray-50 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitBtn"
+                                class="flex-1 px-6 py-3 rounded-lg font-bold text-white transition hover:opacity-90 shadow-lg"
+                                style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
+                            <i class="fas fa-save mr-2"></i>Save Expense
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-
-        <form id="expenseForm" class="p-6">
-            <input type="hidden" id="expenseId" name="id">
-            <input type="hidden" id="expenseAction" name="action" value="add_expense">
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
-                    <select name="category" id="expenseCategory" required 
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
-                            style="focus:border-color: <?php echo $settings['primary_color']; ?>">
-                        <option value="">Select Category</option>
-                        <option value="Utilities">Utilities</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Salaries">Salaries</option>
-                        <option value="Supplies">Supplies</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Licenses">Licenses & Permits</option>
-                        <option value="Equipment">Equipment</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Amount (<?php echo $settings['currency']; ?>) *</label>
-                    <input type="number" step="0.01" name="amount" id="expenseAmount" required min="0.01"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition text-lg font-semibold"
-                           style="focus:border-color: <?php echo $settings['primary_color']; ?>"
-                           placeholder="0.00">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
-                    <input type="date" name="expense_date" id="expenseDate" value="<?php echo date('Y-m-d'); ?>" required 
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
-                           style="focus:border-color: <?php echo $settings['primary_color']; ?>"
-                           max="<?php echo date('Y-m-d'); ?>">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Receipt Number</label>
-                    <input type="text" name="receipt_number" id="expenseReceipt"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
-                           style="focus:border-color: <?php echo $settings['primary_color']; ?>"
-                           placeholder="Optional">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
-                    <textarea name="description" id="expenseDescription" rows="3" required 
-                              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition"
-                              style="focus:border-color: <?php echo $settings['primary_color']; ?>"
-                              placeholder="What was this expense for?"></textarea>
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-6">
-                <button type="button" onclick="closeExpenseModal()" 
-                        class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-bold text-gray-700 hover:bg-gray-50 transition">
-                    Cancel
-                </button>
-                <button type="submit" id="submitBtn"
-                        class="flex-1 px-6 py-3 rounded-lg font-bold text-white transition hover:opacity-90 shadow-lg"
-                        style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
-                    <i class="fas fa-save mr-2"></i>Save Expense
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -438,23 +513,28 @@ include 'header.php';
 const primaryColor = '<?php echo $settings['primary_color']; ?>';
 
 function openExpenseModal() {
-    document.getElementById('expenseModal').classList.remove('hidden');
-    document.getElementById('expenseModal').classList.add('flex');
+    const modal = document.getElementById('expenseModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'items-start');
     document.getElementById('modalTitle').textContent = 'Add Expense';
     document.getElementById('expenseAction').value = 'add_expense';
     document.getElementById('expenseForm').reset();
     document.getElementById('expenseId').value = '';
     document.getElementById('expenseDate').value = '<?php echo date('Y-m-d'); ?>';
+    document.body.style.overflow = 'hidden';
 }
 
 function closeExpenseModal() {
-    document.getElementById('expenseModal').classList.add('hidden');
-    document.getElementById('expenseModal').classList.remove('flex');
+    const modal = document.getElementById('expenseModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex', 'items-start');
+    document.body.style.overflow = '';
 }
 
 function editExpense(expense) {
-    document.getElementById('expenseModal').classList.remove('hidden');
-    document.getElementById('expenseModal').classList.add('flex');
+    const modal = document.getElementById('expenseModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'items-start');
     document.getElementById('modalTitle').textContent = 'Edit Expense';
     document.getElementById('expenseAction').value = 'update_expense';
     document.getElementById('expenseId').value = expense.id;
@@ -463,6 +543,7 @@ function editExpense(expense) {
     document.getElementById('expenseDate').value = expense.expense_date;
     document.getElementById('expenseReceipt').value = expense.receipt_number || '';
     document.getElementById('expenseDescription').value = expense.description;
+    document.body.style.overflow = 'hidden';
 }
 
 function deleteExpense(id, description) {
@@ -495,31 +576,60 @@ document.getElementById('expenseForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const submitBtn = document.getElementById('submitBtn');
+    const originalContent = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
     
     const formData = new FormData(this);
+    
+    // Debug: Log form data
+    console.log('Form Data:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
 
-    fetch('', { 
+    fetch(window.location.href, { 
         method: 'POST', 
-        body: formData 
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(res => res.json())
+    .then(res => {
+        console.log('Response status:', res.status);
+        console.log('Response headers:', res.headers);
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            return res.text().then(text => {
+                console.error('Response is not JSON:', text);
+                throw new Error('Server returned non-JSON response');
+            });
+        }
+        
+        return res.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
+        
         if (data.success) {
             showToast(data.message, 'success');
             setTimeout(() => location.reload(), 1000);
         } else {
             showToast(data.message || 'Failed to save expense', 'error');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Expense';
+            submitBtn.innerHTML = originalContent;
         }
     })
     .catch(err => {
-        showToast('Connection error. Please try again.', 'error');
-        console.error(err);
+        console.error('Error details:', err);
+        showToast('Connection error: ' + err.message, 'error');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Expense';
+        submitBtn.innerHTML = originalContent;
     });
 });
 
@@ -546,6 +656,13 @@ function showToast(message, type) {
 // Close modal on escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        closeExpenseModal();
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('expenseModal').addEventListener('click', function(e) {
+    if (e.target === this) {
         closeExpenseModal();
     }
 });
