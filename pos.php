@@ -36,243 +36,675 @@ include 'header.php';
 ?>
 
 <style>
-/* Fullscreen POS Mode */
+/* ==================== MODERN POS DESIGN ==================== */
+
+* {
+    box-sizing: border-box;
+}
+
+/* Base POS Container */
+.pos-container {
+    display: grid;
+    gap: 0;
+    height: calc(100vh - 140px);
+    background: #f8fafc;
+}
+
+/* Desktop Layout */
+@media (min-width: 1024px) {
+    .pos-container {
+        grid-template-columns: 1fr 450px;
+    }
+}
+
+/* Tablet/Mobile Layout */
+@media (max-width: 1023px) {
+    .pos-container {
+        grid-template-rows: 1fr auto;
+        height: calc(100vh - 80px);
+    }
+}
+
+/* Fullscreen Mode */
 .pos-fullscreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     z-index: 100;
     background: white;
-    overflow: hidden;
 }
 
 .pos-fullscreen .pos-container {
     height: 100vh;
-    padding: 0;
-    margin: 0;
-    gap: 0;
 }
 
-.pos-container {
-    display: grid;
-    grid-template-columns: 1fr 450px;
-    gap: 0;
-    height: calc(100vh - 140px);
-}
-
-@media (max-width: 1280px) {
-    .pos-container {
-        grid-template-columns: 1fr 400px;
-    }
-}
-
-@media (max-width: 1024px) {
-    .pos-container {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-}
-
+/* ==================== PRODUCTS SECTION ==================== */
 .products-section {
     display: flex;
     flex-direction: column;
+    background: #f8fafc;
     overflow: hidden;
-    background: white;
-    border-right: 2px solid #e5e7eb;
 }
 
-.pos-fullscreen .products-section {
-    border-right: 2px solid #e5e7eb;
-}
-
+/* Search Bar */
 .search-bar {
-    padding: 1rem;
-    border-bottom: 2px solid #f3f4f6;
+    padding: 1.25rem;
     background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%);
     flex-shrink: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+@media (max-width: 640px) {
+    .search-bar {
+        padding: 1rem;
+    }
+}
+
+/* Category Tabs */
 .category-tabs {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     overflow-x: auto;
-    padding: 0.75rem 1rem;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.25rem;
+    background: white;
+    border-bottom: 2px solid #e2e8f0;
     flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.category-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.category-tabs::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.category-tabs::-webkit-scrollbar-thumb {
+    background: <?php echo $settings['primary_color']; ?>;
+    border-radius: 3px;
+}
+
+@media (max-width: 640px) {
+    .category-tabs {
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+    }
 }
 
 .category-tab {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
     transition: all 0.2s;
-    background: white;
-    border: 2px solid #e5e7eb;
-    color: #374151;
+    background: #f1f5f9;
+    border: 2px solid transparent;
+    color: #475569;
+    flex-shrink: 0;
 }
 
 .category-tab.active {
     background: <?php echo $settings['primary_color']; ?>;
     color: white;
-    border-color: <?php echo $settings['primary_color']; ?>;
+    box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3);
 }
 
 .category-tab:hover:not(.active) {
-    background: #f3f4f6;
-    border-color: <?php echo $settings['primary_color']; ?>80;
+    background: #e2e8f0;
+    border-color: <?php echo $settings['primary_color']; ?>40;
 }
 
+@media (max-width: 640px) {
+    .category-tab {
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Products Grid */
 .products-grid {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 1.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
     align-content: start;
+    -webkit-overflow-scrolling: touch;
 }
 
+@media (max-width: 1280px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        padding: 1.25rem;
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        padding: 1rem;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        padding: 1rem;
+        gap: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+.products-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.products-grid::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.products-grid::-webkit-scrollbar-thumb {
+    background: <?php echo $settings['primary_color']; ?>;
+    border-radius: 4px;
+}
+
+/* Product Card */
 .product-card {
     background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 .product-card:hover {
     border-color: <?php echo $settings['primary_color']; ?>;
-    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
+    box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2);
+    transform: translateY(-4px);
+}
+
+.product-card:active {
     transform: translateY(-2px);
 }
 
+@media (max-width: 640px) {
+    .product-card {
+        padding: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-card {
+        padding: 0.75rem;
+    }
+}
+
 .product-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 3.5rem;
+    height: 3.5rem;
     background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%);
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.5rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3);
 }
 
+.product-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+@media (max-width: 640px) {
+    .product-icon {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 0.625rem;
+    }
+    
+    .product-icon i {
+        font-size: 1.25rem;
+    }
+}
+
+.product-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.4em;
+}
+
+@media (max-width: 640px) {
+    .product-name {
+        font-size: 0.8125rem;
+    }
+}
+
+.product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: <?php echo $settings['primary_color']; ?>;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .product-price {
+        font-size: 1.125rem;
+    }
+}
+
+.product-stock {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+}
+
+/* ==================== CART SECTION ==================== */
 .cart-section {
     display: flex;
     flex-direction: column;
     background: white;
-    overflow: hidden;
-    height: 100%;
+    border-left: 2px solid #e2e8f0;
+    box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1023px) {
+    .cart-section {
+        border-left: none;
+        border-top: 3px solid <?php echo $settings['primary_color']; ?>;
+        max-height: 50vh;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@media (max-width: 640px) {
+    .cart-section {
+        max-height: 45vh;
+    }
 }
 
 .cart-header {
-    padding: 1.25rem;
+    padding: 1.5rem;
     background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%);
     color: white;
     flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .cart-header {
+        padding: 1.25rem;
+    }
 }
 
 .cart-items {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
-    background: #f9fafb;
+    padding: 1.25rem;
+    background: #f8fafc;
     min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.cart-items::-webkit-scrollbar {
+    width: 8px;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.cart-items::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+@media (max-width: 640px) {
+    .cart-items {
+        padding: 1rem;
+    }
 }
 
 .cart-item {
     background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    animation: slideInCart 0.3s ease-out;
+}
+
+@keyframes slideInCart {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .cart-item {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+}
+
+.cart-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cart-item-icon {
+    width: 3rem;
+    height: 3rem;
     border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    border: 2px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .cart-item-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+.cart-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-item-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+@media (max-width: 640px) {
+    .cart-item-name {
+        font-size: 0.875rem;
+    }
+}
+
+.cart-item-price {
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.cart-item-remove {
+    flex-shrink: 0;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0.25rem;
+}
+
+.cart-item-remove:hover {
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+}
+
+@media (max-width: 640px) {
+    .cart-item-controls {
+        padding: 0.625rem;
+    }
+}
+
+.cart-item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+    .cart-item-quantity {
+        gap: 0.5rem;
+    }
+}
+
+.qty-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+@media (max-width: 640px) {
+    .qty-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+}
+
+.qty-btn:active {
+    transform: scale(0.95);
+}
+
+.qty-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .qty-value {
+        font-size: 1.125rem;
+        min-width: 2rem;
+    }
+}
+
+.cart-item-total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: <?php echo $settings['primary_color']; ?>;
+}
+
+@media (max-width: 640px) {
+    .cart-item-total {
+        font-size: 1.125rem;
+    }
 }
 
 .cart-summary {
-    padding: 1.25rem;
-    border-top: 2px solid #e5e7eb;
+    padding: 1.5rem;
+    border-top: 2px solid #e2e8f0;
     background: white;
     flex-shrink: 0;
 }
 
-/* Fullscreen Toggle Button */
-.fullscreen-toggle {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 101;
-    padding: 0.75rem 1.5rem;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 2rem;
-    font-weight: 600;
+@media (max-width: 640px) {
+    .cart-summary {
+        padding: 1.25rem;
+    }
+}
+
+/* Barcode Scanner */
+.barcode-scanner {
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+@media (max-width: 640px) {
+    .barcode-scanner {
+        padding: 0.875rem 1rem;
+    }
+}
+
+/* Payment Modal */
+.payment-modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+    .payment-modal-content {
+        max-height: 95vh;
+    }
+}
+
+.payment-method-btn {
+    padding: 1.25rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
     cursor: pointer;
-    transition: all 0.3s;
-    backdrop-filter: blur(10px);
-    display: none; /* Hidden as now in header */
+    transition: all 0.2s;
+    text-align: center;
+    background: white;
 }
 
-.fullscreen-toggle:hover {
-    background: rgba(0, 0, 0, 0.95);
-    transform: translateX(-50%) translateY(-2px);
+.payment-method-btn:hover {
+    border-color: <?php echo $settings['primary_color']; ?>60;
+    background: #fafafa;
 }
 
-.pos-fullscreen .fullscreen-toggle {
-    bottom: 1rem;
-    display: none; /* Keep hidden */
+.payment-method-btn.active {
+    border-color: <?php echo $settings['primary_color']; ?>;
+    background-color: <?php echo $settings['primary_color']; ?>08;
+    box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);
 }
 
-/* Draft Orders Badge */
+@media (max-width: 640px) {
+    .payment-method-btn {
+        padding: 1rem;
+    }
+    
+    .payment-method-btn i {
+        font-size: 1.75rem !important;
+    }
+}
+
+/* Draft Badge */
 .draft-badge {
     position: fixed;
     top: 1rem;
     right: 1rem;
     z-index: 102;
-    padding: 0.75rem 1.5rem;
-    background: #f59e0b;
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     border-radius: 2rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
 
 .draft-badge:hover {
-    background: #d97706;
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.5);
 }
 
-@media (max-width: 768px) {
-    .pos-container {
-        grid-template-columns: 1fr;
+@media (max-width: 640px) {
+    .draft-badge {
+        top: 0.75rem;
+        right: 0.75rem;
+        padding: 0.625rem 1.125rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Touch-friendly */
+@media (hover: none) {
+    .product-card,
+    .category-tab,
+    button {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* Empty state */
+.empty-cart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.empty-cart i {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+    .empty-cart {
+        padding: 2rem 1rem;
     }
     
-    .cart-section {
-        max-height: 60vh;
-    }
-    
-    .fullscreen-toggle {
-        bottom: 5rem;
+    .empty-cart i {
+        font-size: 3rem;
     }
 }
 </style>
 
 <div id="posContainer" class="<?php echo $defaultFullscreen ? 'pos-fullscreen' : ''; ?>">
-    <!-- Fullscreen Toggle Button (Removed - Now in header) -->
-
     <!-- Draft Orders Badge -->
     <div id="draftBadge" class="draft-badge no-print hidden" onclick="showDraftOrders()">
         <i class="fas fa-file-invoice mr-2"></i>
@@ -284,31 +716,37 @@ include 'header.php';
         <div class="products-section">
             <!-- Search Bar -->
             <div class="search-bar">
-                <div class="flex gap-3 items-center">
+                <div class="flex gap-2 md:gap-3 items-center">
                     <div class="flex-1 relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-white"></i>
-                        <input type="text" id="searchProduct" placeholder="Search products, SKU, or barcode..." 
-                               class="w-full pl-10 pr-4 py-3 bg-white/20 text-white placeholder-white/75 rounded-lg focus:ring-2 focus:ring-white/50 focus:bg-white/30 backdrop-blur-sm border-0 outline-none"
+                        <input type="text" id="searchProduct" placeholder="Search products..." 
+                               class="w-full pl-10 pr-4 py-2 md:py-3 bg-white/20 text-white placeholder-white/75 rounded-lg focus:ring-2 focus:ring-white/50 focus:bg-white/30 backdrop-blur-sm border-0 outline-none text-sm md:text-base"
                                autofocus>
                     </div>
-                    <button onclick="toggleBarcodeScanner()" id="barcodeScannerBtn" class="px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm" title="Barcode Scanner">
-                        <i class="fas fa-barcode text-xl"></i>
+                    <button onclick="toggleBarcodeScanner()" id="barcodeScannerBtn" 
+                            class="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm" 
+                            title="Barcode Scanner">
+                        <i class="fas fa-barcode text-lg md:text-xl"></i>
                     </button>
-                    <button onclick="toggleFullscreen()" class="px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm" title="Toggle Fullscreen">
-                        <i class="fas fa-expand text-xl" id="fullscreenIconTop"></i>
+                    <button onclick="toggleFullscreen()" 
+                            class="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm" 
+                            title="Toggle Fullscreen">
+                        <i class="fas fa-expand text-lg md:text-xl" id="fullscreenIconTop"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Barcode Scanner -->
-            <div id="barcodeScanner" class="hidden p-4" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                <div class="flex gap-3 items-center">
+            <div id="barcodeScanner" class="hidden barcode-scanner">
+                <div class="flex gap-2 md:gap-3 items-center">
                     <input type="text" id="barcodeInput" placeholder="Scan or enter barcode..." 
-                           class="flex-1 px-4 py-3 border-2 border-white/30 bg-white/20 text-white placeholder-white/75 rounded-lg focus:ring-2 focus:ring-white focus:border-white backdrop-blur-sm">
-                    <button onclick="searchByBarcode()" class="px-6 py-3 bg-white hover:bg-white/90 text-blue-600 rounded-lg font-semibold transition">
-                        <i class="fas fa-search mr-2"></i>Search
+                           class="flex-1 px-3 md:px-4 py-2 md:py-3 border-2 border-white/30 bg-white/20 text-white placeholder-white/75 rounded-lg focus:ring-2 focus:ring-white focus:border-white backdrop-blur-sm text-sm md:text-base">
+                    <button onclick="searchByBarcode()" 
+                            class="px-4 md:px-6 py-2 md:py-3 bg-white hover:bg-white/90 text-blue-600 rounded-lg font-semibold transition text-sm md:text-base">
+                        <i class="fas fa-search mr-1 md:mr-2"></i>Search
                     </button>
-                    <button onclick="toggleBarcodeScanner()" class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition">
+                    <button onclick="toggleBarcodeScanner()" 
+                            class="px-3 md:px-4 py-2 md:py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -317,10 +755,10 @@ include 'header.php';
             <!-- Category Tabs -->
             <div class="category-tabs">
                 <button class="category-tab active" onclick="filterByCategory('all')" data-category="all">
-                    <i class="fas fa-th mr-2"></i>All
+                    <i class="fas fa-th mr-1 md:mr-2"></i>All
                 </button>
                 <?php while ($cat = $categories->fetch_assoc()): ?>
-                <button class="category-tab" onclick="filterByCategory('<?php echo $cat['id']; ?>')" data-category="<?php echo $cat['id']; ?>" title="<?php echo $cat['total_sold']; ?> items sold">
+                <button class="category-tab" onclick="filterByCategory('<?php echo $cat['id']; ?>')" data-category="<?php echo $cat['id']; ?>">
                     <?php echo htmlspecialchars($cat['name']); ?>
                     <?php if ($cat['total_sold'] > 0): ?>
                     <span class="ml-1 px-1.5 py-0.5 bg-white/20 rounded text-xs"><?php echo $cat['total_sold']; ?></span>
@@ -349,14 +787,14 @@ include 'header.php';
                          "stock_quantity" => $product["stock_quantity"]
                      ]); ?>)'>
                     <div class="product-icon">
-                        <i class="fas fa-wine-bottle text-white text-2xl"></i>
+                        <i class="fas fa-wine-bottle text-white text-xl md:text-2xl"></i>
                     </div>
                     <div class="text-center">
-                        <div class="font-semibold text-sm text-gray-900 mb-2 line-clamp-2" style="min-height: 2.5rem;">
+                        <div class="font-semibold text-xs md:text-sm text-gray-900 mb-1 md:mb-2 line-clamp-2" style="min-height: 2rem;">
                             <?php echo htmlspecialchars($product['name']); ?>
                         </div>
-                        <div class="font-bold text-lg mb-1" style="color: <?php echo $settings['primary_color']; ?>">
-                            <?php echo $settings['currency']; ?> <?php echo number_format($product['selling_price'], 2); ?>
+                        <div class="font-bold text-base md:text-lg mb-1" style="color: <?php echo $settings['primary_color']; ?>">
+                            <?php echo $settings['currency']; ?> <?php echo number_format($product['selling_price'], 0); ?>
                         </div>
                         <div class="text-xs px-2 py-1 rounded-full <?php echo $stockStatus['color'] === 'green' ? 'bg-green-100 text-green-800' : ($stockStatus['color'] === 'orange' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'); ?>">
                             <i class="fas fa-boxes mr-1"></i><?php echo $product['stock_quantity']; ?>
@@ -373,52 +811,52 @@ include 'header.php';
             <div class="cart-header">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-bold">Current Sale</h2>
-                        <p class="text-white/80 text-sm" id="cartItemCount">0 items</p>
+                        <h2 class="text-lg md:text-xl font-bold">Current Sale</h2>
+                        <p class="text-white/80 text-xs md:text-sm" id="cartItemCount">0 items</p>
                     </div>
-                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                        <i class="fas fa-shopping-cart text-2xl"></i>
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-shopping-cart text-xl md:text-2xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Cart Items -->
             <div class="cart-items" id="cartItems">
-                <div class="flex flex-col items-center justify-center py-12">
-                    <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-3 opacity-30"></i>
-                    <p class="font-semibold text-lg text-gray-500">Cart is empty</p>
-                    <p class="text-sm text-gray-400">Start adding products</p>
+                <div class="flex flex-col items-center justify-center py-8 md:py-12">
+                    <i class="fas fa-shopping-cart text-5xl md:text-6xl text-gray-300 mb-3 opacity-30"></i>
+                    <p class="font-semibold text-base md:text-lg text-gray-500">Cart is empty</p>
+                    <p class="text-xs md:text-sm text-gray-400">Start adding products</p>
                 </div>
             </div>
 
             <!-- Cart Summary -->
             <div class="cart-summary">
-                <div class="space-y-3">
-                    <div class="flex justify-between text-sm text-gray-600">
+                <div class="space-y-2 md:space-y-3">
+                    <div class="flex justify-between text-xs md:text-sm text-gray-600">
                         <span class="font-medium">Subtotal:</span>
                         <span class="font-bold text-gray-900" id="cartSubtotal"><?php echo $settings['currency']; ?> 0.00</span>
                     </div>
-                    <div class="flex justify-between text-sm text-gray-600">
+                    <div class="flex justify-between text-xs md:text-sm text-gray-600">
                         <span class="font-medium">Tax (<span id="taxRate"><?php echo $settings['tax_rate']; ?></span>%):</span>
                         <span class="font-bold text-gray-900" id="cartTax"><?php echo $settings['currency']; ?> 0.00</span>
                     </div>
-                    <div class="flex justify-between text-xl font-bold pt-3 border-t-2 border-gray-200">
+                    <div class="flex justify-between text-lg md:text-xl font-bold pt-2 md:pt-3 border-t-2 border-gray-200">
                         <span>Total:</span>
                         <span style="color: <?php echo $settings['primary_color']; ?>" id="cartTotal"><?php echo $settings['currency']; ?> 0.00</span>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="saveDraft()" class="px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition">
-                        <i class="fas fa-save mr-2"></i>Save Draft
+                <div class="grid grid-cols-2 gap-2 md:gap-3 mt-3 md:mt-4">
+                    <button onclick="saveDraft()" class="px-3 md:px-4 py-2 md:py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition text-xs md:text-sm">
+                        <i class="fas fa-save mr-1 md:mr-2"></i>Save
                     </button>
-                    <button onclick="clearCart()" class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition">
-                        <i class="fas fa-trash mr-2"></i>Clear
+                    <button onclick="clearCart()" class="px-3 md:px-4 py-2 md:py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition text-xs md:text-sm">
+                        <i class="fas fa-trash mr-1 md:mr-2"></i>Clear
                     </button>
                 </div>
                 
                 <button onclick="showPaymentModal()" id="checkoutBtn" disabled 
-                        class="w-full mt-3 px-4 py-3 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                        class="w-full mt-2 md:mt-3 px-4 py-3 md:py-4 text-white rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 text-sm md:text-base"
                         style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
                     <i class="fas fa-check-circle mr-2"></i>Checkout
                 </button>
@@ -429,70 +867,70 @@ include 'header.php';
 
 <!-- Payment Modal -->
 <div id="paymentModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="backdrop-filter: blur(4px);">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
-        <div class="p-6 rounded-t-2xl text-white" style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl payment-modal-content">
+        <div class="p-4 md:p-6 rounded-t-2xl text-white" style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
             <div class="flex justify-between items-center">
                 <div>
-                    <h3 class="text-2xl font-bold">Complete Payment</h3>
-                    <p class="text-white/80 text-sm">Choose payment method</p>
+                    <h3 class="text-xl md:text-2xl font-bold">Complete Payment</h3>
+                    <p class="text-white/80 text-xs md:text-sm">Choose payment method</p>
                 </div>
                 <button onclick="closePaymentModal()" class="text-white/80 hover:text-white transition">
-                    <i class="fas fa-times text-2xl"></i>
+                    <i class="fas fa-times text-xl md:text-2xl"></i>
                 </button>
             </div>
         </div>
 
-        <div class="p-6">
-            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <div class="p-4 md:p-6">
+            <div class="bg-gray-50 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-600 font-medium">Total Amount:</span>
-                    <span class="text-3xl font-bold" style="color: <?php echo $settings['primary_color']; ?>" id="modalTotal"><?php echo $settings['currency']; ?> 0.00</span>
+                    <span class="text-gray-600 font-medium text-sm md:text-base">Total Amount:</span>
+                    <span class="text-2xl md:text-3xl font-bold" style="color: <?php echo $settings['primary_color']; ?>" id="modalTotal"><?php echo $settings['currency']; ?> 0.00</span>
                 </div>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Method</label>
-                <div class="grid grid-cols-3 gap-3">
-                    <button type="button" onclick="selectPaymentMethod('cash')" class="payment-method-btn active px-4 py-4 border-2 rounded-xl hover:border-green-500 transition text-center">
-                        <i class="fas fa-money-bill-wave text-3xl mb-2 text-green-600"></i>
+            <div class="mb-4 md:mb-6">
+                <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-2 md:mb-3">Payment Method</label>
+                <div class="grid grid-cols-3 gap-2 md:gap-3">
+                    <button type="button" onclick="selectPaymentMethod('cash')" class="payment-method-btn active">
+                        <i class="fas fa-money-bill-wave text-2xl md:text-3xl mb-1 md:mb-2 text-green-600"></i>
                         <div class="text-xs font-semibold">Cash</div>
                     </button>
-                    <button type="button" onclick="selectPaymentMethod('mpesa')" class="payment-method-btn px-4 py-4 border-2 rounded-xl hover:border-green-500 transition text-center">
-                        <i class="fas fa-mobile-alt text-3xl mb-2 text-green-600"></i>
+                    <button type="button" onclick="selectPaymentMethod('mpesa')" class="payment-method-btn">
+                        <i class="fas fa-mobile-alt text-2xl md:text-3xl mb-1 md:mb-2 text-green-600"></i>
                         <div class="text-xs font-semibold">M-Pesa</div>
                     </button>
-                    <button type="button" onclick="selectPaymentMethod('mpesa_till')" class="payment-method-btn px-4 py-4 border-2 rounded-xl hover:border-green-500 transition text-center">
-                        <i class="fas fa-store text-3xl mb-2 text-blue-600"></i>
+                    <button type="button" onclick="selectPaymentMethod('mpesa_till')" class="payment-method-btn">
+                        <i class="fas fa-store text-2xl md:text-3xl mb-1 md:mb-2 text-blue-600"></i>
                         <div class="text-xs font-semibold">Till No.</div>
                     </button>
                 </div>
             </div>
 
-            <div id="mpesaRefField" class="mb-4 hidden">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">M-Pesa Reference</label>
-                <input type="text" id="mpesaReference" class="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-green-500" placeholder="e.g., QA12BC34DE">
+            <div id="mpesaRefField" class="mb-3 md:mb-4 hidden">
+                <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-2">M-Pesa Reference</label>
+                <input type="text" id="mpesaReference" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 rounded-xl focus:ring-2 focus:border-green-500 text-sm md:text-base" placeholder="e.g., QA12BC34DE">
             </div>
 
-            <div id="tillNumberField" class="mb-4 hidden">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Till Number</label>
-                <input type="text" id="tillNumber" class="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:border-blue-500" placeholder="e.g., 123456">
+            <div id="tillNumberField" class="mb-3 md:mb-4 hidden">
+                <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-2">Till Number</label>
+                <input type="text" id="tillNumber" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 rounded-xl focus:ring-2 focus:border-blue-500 text-sm md:text-base" placeholder="e.g., 123456">
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Amount Paid</label>
-                <input type="number" id="amountPaid" class="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 text-lg font-semibold" 
+            <div class="mb-3 md:mb-4">
+                <label class="block text-xs md:text-sm font-semibold text-gray-700 mb-2">Amount Paid</label>
+                <input type="number" id="amountPaid" class="w-full px-3 md:px-4 py-2 md:py-3 border-2 rounded-xl focus:ring-2 text-base md:text-lg font-semibold" 
                        style="border-color: <?php echo $settings['primary_color']; ?>33; focus:border-color: <?php echo $settings['primary_color']; ?>" 
                        step="0.01" min="0">
             </div>
 
-            <div id="changeDisplay" class="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4 hidden">
+            <div id="changeDisplay" class="bg-green-50 border-2 border-green-200 rounded-xl p-3 md:p-4 mb-3 md:mb-4 hidden">
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-700 font-semibold">Change:</span>
-                    <span class="text-2xl font-bold text-green-600" id="changeAmount"><?php echo $settings['currency']; ?> 0.00</span>
+                    <span class="text-gray-700 font-semibold text-sm md:text-base">Change:</span>
+                    <span class="text-xl md:text-2xl font-bold text-green-600" id="changeAmount"><?php echo $settings['currency']; ?> 0.00</span>
                 </div>
             </div>
 
-            <button onclick="completeSale()" id="completeSaleBtn" class="w-full px-6 py-4 text-white rounded-xl font-bold text-lg transition hover:opacity-90 shadow-lg"
+            <button onclick="completeSale()" id="completeSaleBtn" class="w-full px-4 md:px-6 py-3 md:py-4 text-white rounded-xl font-bold text-sm md:text-lg transition hover:opacity-90 shadow-lg"
                     style="background: linear-gradient(135deg, <?php echo $settings['primary_color']; ?> 0%, <?php echo $settings['primary_color']; ?>dd 100%)">
                 <i class="fas fa-check-circle mr-2"></i>Complete Sale
             </button>
@@ -502,15 +940,15 @@ include 'header.php';
 
 <!-- Draft Orders Modal -->
 <div id="draftModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="backdrop-filter: blur(4px);">
-    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div class="sticky top-0 bg-white p-6 border-b flex items-center justify-between z-10">
-            <h3 class="text-2xl font-bold text-gray-900">Draft Orders</h3>
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="sticky top-0 bg-white p-4 md:p-6 border-b flex items-center justify-between z-10">
+            <h3 class="text-xl md:text-2xl font-bold text-gray-900">Draft Orders</h3>
             <button onclick="closeDraftModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-2xl"></i>
+                <i class="fas fa-times text-xl md:text-2xl"></i>
             </button>
         </div>
         
-        <div id="draftList" class="p-6"></div>
+        <div id="draftList" class="p-4 md:p-6"></div>
     </div>
 </div>
 
@@ -526,7 +964,7 @@ const isFullscreen = <?php echo $defaultFullscreen ? 'true' : 'false'; ?>;
 document.addEventListener('DOMContentLoaded', function() {
     if (isFullscreen) {
         document.getElementById('posContainer').classList.add('pos-fullscreen');
-        document.getElementById('fullscreenIconTop').className = 'fas fa-compress text-xl';
+        document.getElementById('fullscreenIconTop').className = 'fas fa-compress text-lg md:text-xl';
     }
     updateDraftBadge();
 });
@@ -538,9 +976,9 @@ function toggleFullscreen() {
     container.classList.toggle('pos-fullscreen');
     
     if (container.classList.contains('pos-fullscreen')) {
-        iconTop.className = 'fas fa-compress text-xl';
+        iconTop.className = 'fas fa-compress text-lg md:text-xl';
     } else {
-        iconTop.className = 'fas fa-expand text-xl';
+        iconTop.className = 'fas fa-expand text-lg md:text-xl';
     }
 }
 
@@ -579,42 +1017,42 @@ function updateCart() {
     
     if (cart.length === 0) {
         cartItemsDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12">
-                <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-3 opacity-30"></i>
-                <p class="font-semibold text-lg text-gray-500">Cart is empty</p>
-                <p class="text-sm text-gray-400">Start adding products</p>
+            <div class="flex flex-col items-center justify-center py-8 md:py-12">
+                <i class="fas fa-shopping-cart text-5xl md:text-6xl text-gray-300 mb-3 opacity-30"></i>
+                <p class="font-semibold text-base md:text-lg text-gray-500">Cart is empty</p>
+                <p class="text-xs md:text-sm text-gray-400">Start adding products</p>
             </div>
         `;
         checkoutBtn.disabled = true;
     } else {
         cartItemsDiv.innerHTML = cart.map(item => `
             <div class="cart-item">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="flex items-center gap-3 flex-1">
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.primary_color}dd 100%)">
-                            <i class="fas fa-wine-bottle text-white"></i>
+                <div class="flex items-start justify-between mb-2 md:mb-3">
+                    <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.primary_color}dd 100%)">
+                            <i class="fas fa-wine-bottle text-white text-sm md:text-base"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-bold text-sm text-gray-900 mb-1">${item.name}</h4>
-                            <p class="text-xs text-gray-600">${settings.currency} ${item.price.toFixed(2)} each</p>
+                            <h4 class="font-bold text-xs md:text-sm text-gray-900 mb-1 truncate">${item.name}</h4>
+                            <p class="text-xs text-gray-600">${settings.currency} ${item.price.toFixed(0)} each</p>
                         </div>
                     </div>
-                    <button onclick="removeFromCart(${item.id}); event.stopPropagation();" class="text-red-500 hover:text-red-700 transition ml-2">
-                        <i class="fas fa-times-circle text-xl"></i>
+                    <button onclick="removeFromCart(${item.id}); event.stopPropagation();" class="text-red-500 hover:text-red-700 transition ml-2 flex-shrink-0">
+                        <i class="fas fa-times-circle text-lg md:text-xl"></i>
                     </button>
                 </div>
                 <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
-                    <div class="flex items-center gap-2">
-                        <button onclick="updateQuantity(${item.id}, -1); event.stopPropagation();" class="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition">
-                            <i class="fas fa-minus"></i>
+                    <div class="flex items-center gap-1 md:gap-2">
+                        <button onclick="updateQuantity(${item.id}, -1); event.stopPropagation();" class="w-8 h-8 md:w-10 md:h-10 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition">
+                            <i class="fas fa-minus text-xs md:text-sm"></i>
                         </button>
-                        <span class="w-14 text-center font-bold text-xl text-gray-900">${item.quantity}</span>
-                        <button onclick="updateQuantity(${item.id}, 1); event.stopPropagation();" class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition">
-                            <i class="fas fa-plus"></i>
+                        <span class="w-10 md:w-14 text-center font-bold text-lg md:text-xl text-gray-900">${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, 1); event.stopPropagation();" class="w-8 h-8 md:w-10 md:h-10 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition">
+                            <i class="fas fa-plus text-xs md:text-sm"></i>
                         </button>
                     </div>
                     <div class="text-right">
-                        <p class="font-bold text-xl" style="color: ${settings.primary_color}">${settings.currency} ${(item.price * item.quantity).toFixed(2)}</p>
+                        <p class="font-bold text-base md:text-xl" style="color: ${settings.primary_color}">${settings.currency} ${(item.price * item.quantity).toFixed(0)}</p>
                     </div>
                 </div>
             </div>
@@ -810,7 +1248,7 @@ function showDraftOrders() {
                         <p class="text-sm font-semibold text-blue-600 mt-1">${draft.items.length} items</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="loadDraft(${draft.id})" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition">
+                        <button onclick="loadDraft(${draft.id})" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition text-sm">
                             <i class="fas fa-upload mr-2"></i>Load
                         </button>
                         <button onclick="if(confirm('Delete this draft?')) deleteDraft(${draft.id})" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition">
@@ -1018,7 +1456,7 @@ function showNotification(message, type = 'info') {
     };
     
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-[200] transform transition-all duration-300`;
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 md:px-6 py-2 md:py-3 rounded-lg shadow-lg z-[200] transform transition-all duration-300 text-sm md:text-base`;
     notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>${message}`;
     
     document.body.appendChild(notification);
