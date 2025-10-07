@@ -5,6 +5,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 $settings = getSettings();
 $page_title = $page_title ?? 'Dashboard';
+
+// Get alert counts for notification badge
+$lowStockCount = $conn->query("SELECT COUNT(*) as count FROM products WHERE stock_quantity <= reorder_level AND status = 'active'")->fetch_assoc()['count'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,6 +32,21 @@ $page_title = $page_title ?? 'Dashboard';
         @media print {
             .no-print { display: none !important; }
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+        
+        /* Clickable Cards */
+        .clickable-card {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .clickable-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .clickable-card:active {
+            transform: translateY(-2px);
         }
         
         /* Sidebar Animations */
@@ -90,8 +108,18 @@ $page_title = $page_title ?? 'Dashboard';
             box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
         }
         
-        /* Notification Dot */
-        .notification-dot {
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            padding: 0.125rem 0.375rem;
+            line-height: 1;
             animation: pulse 2s infinite;
         }
         
@@ -141,6 +169,19 @@ $page_title = $page_title ?? 'Dashboard';
         
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary-dark);
+        }
+        
+        /* Responsive Grid */
+        @media (max-width: 640px) {
+            .responsive-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .responsive-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -211,6 +252,18 @@ $page_title = $page_title ?? 'Dashboard';
                         <a href="/inventory.php" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 transition <?php echo basename($_SERVER['PHP_SELF']) === 'inventory.php' ? 'active' : ''; ?>">
                             <i class="fas fa-boxes w-5"></i>
                             <span>Stock Management</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/stock-alerts.php" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 transition <?php echo basename($_SERVER['PHP_SELF']) === 'stock-alerts.php' ? 'active' : ''; ?>">
+                            <div class="relative">
+                                <i class="fas fa-bell w-5"></i>
+                                <?php if ($lowStockCount > 0): ?>
+                                <span class="notification-badge"><?php echo $lowStockCount; ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <span>Stock Alerts</span>
                         </a>
                     </li>
                     <?php endif; ?>
@@ -301,6 +354,14 @@ $page_title = $page_title ?? 'Dashboard';
                 </div>
                 
                 <div class="flex items-center gap-3">
+                    <!-- Stock Alerts Badge -->
+                    <?php if ($_SESSION['role'] === 'owner' && $lowStockCount > 0): ?>
+                    <a href="/stock-alerts.php" class="relative p-2 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-xl text-gray-600"></i>
+                        <span class="notification-badge"><?php echo $lowStockCount; ?></span>
+                    </a>
+                    <?php endif; ?>
+                    
                     <!-- Quick Stats -->
                     <?php if ($_SESSION['role'] === 'owner'): ?>
                     <div class="hidden lg:flex items-center gap-2 stats-badge px-3 py-2 rounded-lg text-white text-xs font-semibold">
@@ -377,6 +438,17 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && sidebar.classList.contains('open')) {
         sidebar.classList.remove('open');
         overlay.classList.add('hidden');
+    }
+});
+
+// Make cards clickable
+document.querySelectorAll('.clickable-card').forEach(card => {
+    const link = card.dataset.href;
+    if (link) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            window.location.href = link;
+        });
     }
 });
 </script>
